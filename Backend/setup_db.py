@@ -1,10 +1,10 @@
 import sqlite3
 
-conn = sqlite3.connect('medicine_expiry.db')
+conn = sqlite3.connect("medicine_expiry.db")
 cur = conn.cursor()
 
-cur.execute('''
-    CREATE TABLE medicines (
+cur.execute("""
+    CREATE TABLE IF NOT EXISTS medicines (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
         batch TEXT NOT NULL,
@@ -12,8 +12,8 @@ cur.execute('''
         barcode TEXT NOT NULL,
         quantity INTEGER NOT NULL
     )
-''')
+""")
 
 conn.commit()
 conn.close()
-print('✓ Database created successfully!')
+print("✓ Database created successfully!")
