@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Medicine Expiry Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+  <h1>Medicine Expiry Tracker</h1>
+
+  <form id="medicineForm">
+    <input type="text" placeholder="Medicine Name" id="name" required />
+    <br />
+    <input type="text" placeholder="Batch No" id="batch" /> <br />
+    <input type="date" id="expiry" required /> <br />
+    <input type="text" placeholder="Barcode" id="barcode" /> <br />
+    <input type="number" placeholder="Quantity" id="quantity" required />
+    <br />
+    <button>Add Medicine</button>
+  </form>
+
+  <div id="medicineList"></div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+
+</html>

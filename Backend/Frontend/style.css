@@ -1,0 +1,61 @@
+body {
+  font-family: Arial;
+  text-align: center;
+  background: rgb(78, 78, 78);
+}
+
+form {
+  padding: 20px;
+  margin: 20px auto;
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
+input {
+  width: 30%;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5%;
+  border-bottom: rgb(8, 8, 8) 2px solid;
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  font-size: 16px;
+  background-color: transparent;
+  color: white;
+}
+button{
+  width: 30%;
+  margin: 10px;
+  padding: 10px;
+  border-radius: 5%;
+  font-size: 16px;
+  color: rgb(12, 12, 12);
+  cursor: pointer;
+  border: none;
+}
+button:hover {
+  background-color: rgb(70, 214, 240);
+  color: black;
+  font-weight: bold;
+  border-radius: 30px;
+}
+
+.card {
+  width: 50%;
+  margin: 10px auto;
+  padding: 5px;
+  border-radius: 10px;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+
+
+}
+
+.safe { background: green; }
+.warning { background: orange; }
+.expired { background: red; }
