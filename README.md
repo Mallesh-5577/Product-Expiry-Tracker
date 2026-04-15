@@ -1,15 +1,15 @@
-# Medicine Expiry Tracker
+# Product Expiry Tracker
 
-A web application to track medicine expiry dates and manage inventory for multiple users. Never miss an expired medicine with our smart tracking system!
+A web application to track product expiry dates and manage inventory for multiple users. Never miss an expired product with our smart tracking system!
 
 ## 🌟 Features
 
 - **Multi-User Support**: Each user has their own secure account with JWT authentication
-- **Medicine Tracking**: Add, view, and delete medicines with expiry dates
+- **Product Tracking**: Add, view, and delete products with expiry dates
 - **Smart Status Indicators**:
   - 🟢 **Safe**: More than 30 days until expiry
   - 🟠 **Warning**: 30 days or less until expiry
-  - 🔴 **Expired**: Already expired medicines
+  - 🔴 **Expired**: Already expired products
 - **Days Left Counter**: Automatically calculates days remaining until expiry
 - **Secure Authentication**: Password hashing and JWT tokens
 - **Cloud Deployed**: Hosted on Render for 24/7 availability
@@ -20,7 +20,8 @@ A web application to track medicine expiry dates and manage inventory for multip
 ### Backend
 
 - **Flask**: Python web framework
-- **SQLite**: Database for storing users and medicines
+- **PostgreSQL**: Persistent cloud database for deployed environments
+- **SQLite**: Local development fallback
 - **JWT (PyJWT)**: Secure token-based authentication
 - **Gunicorn**: Production WSGI server
 - **Werkzeug**: Password hashing and security utilities
@@ -53,8 +54,8 @@ A web application to track medicine expiry dates and manage inventory for multip
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/Mallesh-5577/Medicine-Exp-Tracker.git
-   cd Medicine-Exp-Tracker/Backend
+   git clone https://github.com/Mallesh-5577/Product-Expiry-Tracker.git
+   cd Product-Expiry-Tracker/Backend
    ```
 
 2. **Create and activate virtual environment**
@@ -95,10 +96,10 @@ A web application to track medicine expiry dates and manage inventory for multip
 ## 📁 Project Structure
 
 ```
-Medicine-Exp-Tracker/
+Product-Expiry-Tracker/
 ├── Backend/
 │   ├── Frontend/
-│   │   ├── index.html          # Dashboard (medicines list)
+│   │   ├── index.html          # Dashboard (products list)
 │   │   ├── login.html          # Login/Signup page
 │   │   ├── script.js           # Frontend JavaScript
 │   │   └── style.css           # Styling
@@ -134,12 +135,12 @@ Medicine-Exp-Tracker/
   ```
   Response: `{ "token": "eyJhbGc..." }`
 
-### Medicine Management (Requires Token)
+### Product Management (Requires Token)
 
 All requests must include header: `Authorization: Bearer <token>`
 
-- `GET /medicines` - Get all medicines for logged-in user
-- `POST /add` - Add new medicine
+- `GET /products` - Get all products for logged-in user
+- `POST /add` - Add new product
 
   ```json
   {
@@ -151,7 +152,7 @@ All requests must include header: `Authorization: Bearer <token>`
   }
   ```
 
-- `DELETE /delete/<id>` - Delete a medicine
+- `DELETE /delete/<id>` - Delete a product
 
 ## 👤 User Authentication
 
@@ -174,7 +175,7 @@ All requests must include header: `Authorization: Bearer <token>`
 
 - Passwords hashed using Werkzeug
 - JWT tokens expire-based validation
-- User data isolation (can only see own medicines)
+- User data isolation (can only see own products)
 - CORS enabled for cross-origin requests
 
 ## 🗄 Database Schema
@@ -183,22 +184,22 @@ All requests must include header: `Authorization: Bearer <token>`
 
 ```sql
 CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+   id SERIAL PRIMARY KEY,
     email TEXT UNIQUE NOT NULL,
     password TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 ```
 
-### Medicines Table
+### Products Table
 
 ```sql
-CREATE TABLE medicines (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+CREATE TABLE products (
+   id SERIAL PRIMARY KEY,
     user_id INTEGER NOT NULL,
     name TEXT NOT NULL,
     batch TEXT NOT NULL,
-    expiry TEXT NOT NULL,
+   expiry DATE NOT NULL,
     barcode TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
@@ -213,10 +214,10 @@ CREATE TABLE medicines (
 cd Backend
 
 # Build image
-docker build -t medicine-tracker .
+docker build -t product-tracker .
 
 # Run container
-docker run -p 1000:1000 medicine-tracker
+docker run -p 1000:1000 product-tracker
 
 # Or use Docker Compose
 docker-compose up --build
@@ -237,41 +238,45 @@ Access at `http://localhost:1000`
 2. Connect GitHub repository
 3. Configure:
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:app`
-   - **Port**: 10000
+   - **Start Command**: `gunicorn --bind 0.0.0.0:$PORT app:app`
+   - Add a PostgreSQL database in Render and connect it to your web service
 4. Deploy!
 
-### Environment Variables (Optional)
+### Environment Variables
 
 ```
 SECRET_KEY=your-secure-secret-key-here
+DATABASE_URL=postgresql://user:password@host:5432/dbname
 FLASK_ENV=production
+ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
+RATE_LIMIT_WINDOW_SECONDS=60
+RATE_LIMIT_MAX_ATTEMPTS=10
 ```
 
 ## 📱 Usage Guide
 
-### Adding a Medicine
+### Adding a Product
 
 1. Login to your account
-2. Fill in medicine details:
-   - **Medicine Name**: e.g., Aspirin
+2. Fill in product details:
+   - **Product Name**: e.g., Aspirin
    - **Batch No**: e.g., BATCH001
    - **Expiry Date**: Select date
    - **Barcode**: e.g., 1234567890
    - **Quantity**: Number of units
-3. Click "Add Medicine"
+3. Click "Add Product"
 
-### Viewing Medicines
+### Viewing Products
 
-- Dashboard shows all your medicines
+- Dashboard shows all your products
 - Color-coded status:
   - Green: Safe (>30 days)
   - Orange: Warning (≤30 days)
   - Red: Expired
 
-### Deleting a Medicine
+### Deleting a Product
 
-1. Find medicine in list
+1. Find product in list
 2. Click "Delete" button
 3. Confirmed deleted
 
@@ -296,12 +301,12 @@ Password: test123456
 
 - [ ] Signup with new email
 - [ ] Login with credentials
-- [ ] Add medicine with all fields
+- [ ] Add product with all fields
 - [ ] Verify status indicators (safe/warning/expired)
-- [ ] Delete medicine
+- [ ] Delete product
 - [ ] Logout and verify redirect
 - [ ] Login with different account
-- [ ] Verify data isolation (only see own medicines)
+- [ ] Verify data isolation (only see own products)
 
 ## 📊 Status Color Reference
 
@@ -335,7 +340,7 @@ Password: test123456
 
 - Only one instance of app should run
 - Restart application
-- Clear database if corrupted: `rm medicine_expiry.db`
+- Clear database if corrupted: `rm product_expiry.db`
 
 ## 🔒 Security Considerations
 
@@ -363,16 +368,14 @@ Contributions are welcome! Please:
 
 ## 📈 Future Enhancements
 
-- [ ] Email notifications for expiring medicines
-- [ ] Medicine categories/tags
+- [ ] Product categories/tags
 - [ ] Barcode scanning
-- [ ] Expiry date alerts via SMS
 - [ ] Admin dashboard for multi-store management
-- [ ] Medicine search and filters
-- [ ] Export medicines list to PDF/CSV
+- [ ] Product search and filters
+- [ ] Export products list to PDF/CSV
 - [ ] Dark mode theme
 - [ ] Two-factor authentication
-- [ ] Medicine usage history
+- [ ] Product usage history
 
 ## 📄 License
 
@@ -384,8 +387,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🔗 Links
 
-- **Live Demo**: https://medicine-exp-tracker-7.onrender.com
-- **GitHub Repository**: https://github.com/Mallesh-5577/Medicine-Exp-Tracker
+- **Live Demo**: https://product-expiry-tracker-7.onrender.com
+- **GitHub Repository**: https://github.com/Mallesh-5577/Product-Expiry-Tracker
 - **Render Deployment**: https://render.com
 
 ## 📞 Support

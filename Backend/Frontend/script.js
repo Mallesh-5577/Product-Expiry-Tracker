@@ -1,8 +1,38 @@
-const API = "http://127.0.0.1:1000";
+// Dynamically set API based on environment
+const API = (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? "http://localhost:1000"
+  : window.location.origin;
 
-document.getElementById("medicineForm").onsubmit = async (e) => {
+function showAuthMessage(message) {
+  const list = document.getElementById('productList');
+  if (list) {
+    list.innerHTML = `<p class='state-message state-error'>${message}</p>`;
+  }
+}
+
+function updateInventoryCount(count) {
+  const countNode = document.getElementById('inventoryCount');
+  if (countNode) {
+    countNode.textContent = `${count} item${count === 1 ? '' : 's'}`;
+  }
+}
+
+// Check if user is logged in
+document.addEventListener('DOMContentLoaded', () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    updateInventoryCount(0);
+    window.location.href = '/auth';
+    return;
+  }
+
+  loadProducts();
+});
+
+document.getElementById("productForm").onsubmit = async (e) => {
   e.preventDefault();
 
+  const token = localStorage.getItem('token');
   const data = {
     name: document.getElementById("name").value,
     batch: document.getElementById("batch").value,
@@ -14,9 +44,18 @@ document.getElementById("medicineForm").onsubmit = async (e) => {
   try {
     const res = await fetch(API + "/add", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify(data)
     });
+
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/auth';
+      return;
+    }
 
     if (!res.ok) {
       const error = await res.json();
@@ -24,66 +63,104 @@ document.getElementById("medicineForm").onsubmit = async (e) => {
       return;
     }
 
-    document.getElementById("medicineForm").reset();
-    loadMedicines();
+    document.getElementById("productForm").reset();
+    loadProducts();
   } catch (e) {
     alert("Failed to connect to server. Make sure backend is running!");
     console.error(e);
   }
 };
 
-async function loadMedicines() {
+async function loadProducts() {
+  const token = localStorage.getItem('token');
+  const productList = document.getElementById('productList');
+
+  if (!productList) {
+    return;
+  }
+
   try {
-    const res = await fetch(API + "/medicines");
+    const res = await fetch(API + "/products", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/auth';
+      return;
+    }
+
     if (!res.ok) {
-      throw new Error("Failed to fetch medicines: " + res.status);
+      throw new Error("Failed to fetch products: " + res.status);
     }
-    
-    const meds = await res.json();
-    medicineList.innerHTML = "";
 
-    if (!Array.isArray(meds)) {
-      medicineList.innerHTML = "<p>Error loading medicines</p>";
+    const products = await res.json();
+    productList.innerHTML = "";
+
+    if (!Array.isArray(products)) {
+      productList.innerHTML = "<p class='state-message state-error'>Error loading products</p>";
       return;
     }
 
-    if (meds.length === 0) {
-      medicineList.innerHTML = "<p>No medicines added yet</p>";
+    if (products.length === 0) {
+      productList.innerHTML = "<p class='state-message'>No products added yet</p>";
+      updateInventoryCount(0);
       return;
     }
 
-    meds.forEach(m => {
-      medicineList.innerHTML += `
-        <div class="card ${m.status}">
-          <h3>${m.name}</h3>
-          <p>Batch: ${m.batch}</p>
-          <p>Expiry: ${m.expiry}</p>
-          <p>Days Left: ${m.days_left}</p>
-          <button onclick="deleteMed(${m.id})">Delete</button>
+    updateInventoryCount(products.length);
+
+    products.forEach((product, index) => {
+      productList.innerHTML += `
+        <div class="card ${product.status}" style="animation-delay:${Math.min(index * 90, 540)}ms">
+          <h3>${product.name}</h3>
+          <p>Batch: ${product.batch}</p>
+          <p>Expiry: ${product.expiry}</p>
+          <p>Barcode: ${product.barcode}</p>
+          <p>Quantity: ${product.quantity}</p>
+          <p>Days Left: ${product.days_left}</p>
+          <button onclick="deleteProduct(${product.id})">Delete</button>
         </div>`;
     });
   } catch (e) {
-    medicineList.innerHTML = "<p style='color:red'>⚠️ Cannot connect to server. Make sure backend is running on http://127.0.0.1:1000</p>";
+    productList.innerHTML = "<p class='state-message state-error'>⚠️ Cannot connect to server.</p>";
+    updateInventoryCount(0);
     console.error(e);
   }
 }
 
-async function deleteMed(id) {
+async function deleteProduct(id) {
+  const token = localStorage.getItem('token');
   try {
-    const res = await fetch(API + "/delete/" + id, { method: "DELETE" });
+    const res = await fetch(API + "/products/" + id, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
     
+    if (res.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/auth';
+      return;
+    }
+
     if (!res.ok) {
       const error = await res.json();
       alert("Error: " + error.error);
       return;
     }
     
-    loadMedicines();
+    loadProducts();
   } catch (e) {
-    alert("Failed to delete medicine");
+    alert("Failed to delete product");
     console.error(e);
   }
 }
 
-loadMedicines();
+function logout() {
+  localStorage.removeItem('token');
+  window.location.href = '/';
+}
