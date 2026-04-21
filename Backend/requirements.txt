@@ -3,8 +3,4 @@ flask_cors
 gunicorn
 pyjwt
 werkzeug
-<<<<<<< HEAD
 psycopg2-binary
-=======
-psycopg2-binary
->>>>>>> 69a63d8 (Updated debug mode:off)

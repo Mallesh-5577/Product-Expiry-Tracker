@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+Backend/__pycache__/
+Backend/*.pyc
+Backend/*.db
+Backend/*.zip
+Backend/Backend/

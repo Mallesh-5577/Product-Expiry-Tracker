@@ -20,7 +20,7 @@ app = Flask(
     static_folder=os.path.join(os.path.dirname(__file__), "Frontend"),
     static_url_path="",
 )
-FLASK_ENV = os.environ.get("FLASK_ENV", "development").lower()
+FLASK_ENV = os.environ.get("FLASK_ENV", "production" if os.environ.get("VERCEL") else "development").lower()
 IS_PRODUCTION = FLASK_ENV == "production" or bool(os.environ.get("VERCEL"))
 ALLOWED_ORIGINS = [
     origin.strip()
