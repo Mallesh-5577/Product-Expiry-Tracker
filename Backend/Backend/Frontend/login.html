@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Product Expiry Tracker - Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="auth-page">
+    <div class="float-orb orb-one"></div>
+    <div class="float-orb orb-two"></div>
+
+    <div class="auth-layout">
+        <header class="topbar">
+            <div class="brand-block">
+                <div class="brand-mark">PET</div>
+                <div>
+                    <p class="eyebrow">Secure portal</p>
+                    <h1>Product Expiry Tracker</h1>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="nav-btn nav-btn-ghost" onclick="window.location.href='/'">Introduction</button>
+                <button class="nav-btn nav-btn-ghost" onclick="showLoginForm()">Login</button>
+                <button class="nav-btn nav-btn-exit" onclick="showSignupForm()">Sign Up</button>
+            </div>
+        </header>
+
+        <main class="auth-shell">
+            <section class="auth-hero">
+                <p class="eyebrow">Secure product workflow</p>
+                <h2>Track expiry. Stay ahead.</h2>
+                <p>Use your account to add products, monitor expiry windows, and get fast visibility of at-risk stock
+                    in
+                    one living dashboard.</p>
+            </section>
+
+            <section class="auth-container">
+                <div class="auth-panel">
+                    <span class="auth-badge">Access portal</span>
+                    <!-- Login Form -->
+                    <div id="loginForm" class="form-step">
+                        <h1>Welcome Back</h1>
+                        <p class="auth-card-copy">Sign in to continue managing your inventory timeline.</p>
+                        <div class="error" id="loginError"></div>
+                        <div class="form-group">
+                            <label for="loginEmail">Email</label>
+                            <input type="email" id="loginEmail" placeholder="your.email@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                        </div>
+                        <button class="btn" onclick="handleLogin()">Login</button>
+                        <div class="toggle-form">
+                            Don't have an account? <a onclick="showSignupForm()">Sign up here</a>
+                        </div>
+                    </div>
+
+                    <!-- Signup Form -->
+                    <div id="signupForm" class="form-step" style="display: none;">
+                        <h1>Create Account</h1>
+                        <p class="auth-card-copy">Create a secure account to start tracking product batches.</p>
+                        <div class="error" id="signupError"></div>
+                        <div class="success" id="signupSuccess"></div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email</label>
+                            <input type="email" id="signupEmail" placeholder="your.email@example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPhone">Mobile Number</label>
+                            <input type="tel" id="signupPhone" placeholder="+91XXXXXXXXXX" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <input type="password" id="signupPassword" placeholder="Enter a password (min 6 chars)"
+                                required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPasswordConfirm">Confirm Password</label>
+                            <input type="password" id="signupPasswordConfirm" placeholder="Confirm password" required>
+                        </div>
+                        <button class="btn" onclick="handleSignup()">Sign Up</button>
+                        <div class="toggle-form">
+                            Already have an account? <a onclick="showLoginForm()">Login here</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footerbar">
+            <span>Contact support: +91 8977259147</span>
+            <span>Secure login and inventory workspace</span>
+        </footer>
+    </div>
+
+    <script>
+        const API = window.location.hostname === 'localhost'
+            ? "http://localhost:1000"
+            : window.location.origin;
+
+        function animateForms() {
+            document.getElementById('loginForm').classList.remove('form-step');
+            document.getElementById('signupForm').classList.remove('form-step');
+            setTimeout(() => {
+                document.getElementById('loginForm').classList.add('form-step');
+                document.getElementById('signupForm').classList.add('form-step');
+            }, 10);
+        }
+
+        function showLoginForm() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('signupForm').style.display = 'none';
+            animateForms();
+
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('signupError').style.display = 'none';
+            document.getElementById('signupSuccess').style.display = 'none';
+        }
+
+        function showSignupForm() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('signupForm').style.display = 'block';
+            animateForms();
+
+            document.getElementById('loginError').style.display = 'none';
+            document.getElementById('signupError').style.display = 'none';
+            document.getElementById('signupSuccess').style.display = 'none';
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!email || !password) {
+                errorDiv.textContent = 'Please fill in all fields';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch(API + '/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorDiv.textContent = data.error || 'Login failed';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                // Save token and redirect
+                localStorage.setItem('token', data.token);
+                window.location.href = '/dashboard';
+            } catch (e) {
+                errorDiv.textContent = 'Failed to connect to server';
+                errorDiv.style.display = 'block';
+                console.error(e);
+            }
+        }
+
+        async function handleSignup() {
+            const email = document.getElementById('signupEmail').value;
+            const phone = document.getElementById('signupPhone').value;
+            const password = document.getElementById('signupPassword').value;
+            const passwordConfirm = document.getElementById('signupPasswordConfirm').value;
+            const errorDiv = document.getElementById('signupError');
+            const successDiv = document.getElementById('signupSuccess');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            if (!email || !phone || !password || !passwordConfirm) {
+                errorDiv.textContent = 'Please fill in all fields';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password !== passwordConfirm) {
+                errorDiv.textContent = 'Passwords do not match';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (password.length < 6) {
+                errorDiv.textContent = 'Password must be at least 6 characters';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const res = await fetch(API + '/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, phone, password })
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    errorDiv.textContent = data.error || 'Signup failed';
+                    errorDiv.style.display = 'block';
+                    return;
+                }
+
+                successDiv.textContent = 'Account created! Please login with your credentials.';
+                successDiv.style.display = 'block';
+
+                // Clear form
+                document.getElementById('signupEmail').value = '';
+                document.getElementById('signupPhone').value = '';
+                document.getElementById('signupPassword').value = '';
+                document.getElementById('signupPasswordConfirm').value = '';
+
+                // Redirect to login after 2 seconds
+                setTimeout(() => {
+                    showLoginForm();
+                }, 2000);
+            } catch (e) {
+                errorDiv.textContent = 'Failed to connect to server';
+                errorDiv.style.display = 'block';
+                console.error(e);
+            }
+        }
+
+        // Allow Enter key to submit
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('loginPassword').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleLogin();
+            });
+            document.getElementById('signupPasswordConfirm').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') handleSignup();
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -37,18 +37,26 @@ SECRET_KEY = os.environ.get("SECRET_KEY", DEFAULT_SECRET_KEY)
 JWT_EXPIRES_HOURS = int(os.environ.get("JWT_EXPIRES_HOURS", "24"))
 RATE_LIMIT_WINDOW_SECONDS = int(os.environ.get("RATE_LIMIT_WINDOW_SECONDS", "60"))
 RATE_LIMIT_MAX_ATTEMPTS = int(os.environ.get("RATE_LIMIT_MAX_ATTEMPTS", "10"))
+ON_VERCEL = bool(os.environ.get("VERCEL"))
+ALLOW_VERCEL_EPHEMERAL_DB = os.environ.get("ALLOW_VERCEL_EPHEMERAL_DB", "0") == "1"
 
 if IS_PRODUCTION and SECRET_KEY == DEFAULT_SECRET_KEY:
-    raise RuntimeError("SECRET_KEY must be set to a strong value in production")
+    if ON_VERCEL and ALLOW_VERCEL_EPHEMERAL_DB:
+        print("WARNING: Using default SECRET_KEY for temporary Vercel testing only")
+    else:
+        raise RuntimeError("SECRET_KEY must be set to a strong value in production")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 USE_POSTGRES = bool(DATABASE_URL)
-ON_VERCEL = bool(os.environ.get("VERCEL"))
 
 if ON_VERCEL and not DATABASE_URL:
-    raise RuntimeError(
-        "DATABASE_URL is required on Vercel. Use a managed PostgreSQL database."
-    )
+    if ALLOW_VERCEL_EPHEMERAL_DB:
+        print("WARNING: DATABASE_URL is missing. Falling back to ephemeral SQLite on Vercel")
+    else:
+        raise RuntimeError(
+            "DATABASE_URL is required on Vercel. Use a managed PostgreSQL database. "
+            "For temporary testing only, set ALLOW_VERCEL_EPHEMERAL_DB=1"
+        )
 
 if USE_POSTGRES and psycopg2 is None:
     raise RuntimeError(
@@ -59,6 +67,10 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DEFAULT_DB_PATH = os.path.join(BASE_DIR, "product_expiry.db")
 LEGACY_DB_PATH = os.path.join(BASE_DIR, "medicine_expiry.db")
 DB_PATH = DEFAULT_DB_PATH
+
+if ON_VERCEL and not USE_POSTGRES and ALLOW_VERCEL_EPHEMERAL_DB:
+    # Vercel function filesystem is ephemeral; this is only for temporary testing.
+    DB_PATH = "/tmp/product_expiry.db"
 
 if (
     not USE_POSTGRES
