@@ -1,0 +1,6 @@
+flask
+flask_cors
+gunicorn
+pyjwt
+werkzeug
+psycopg2-binary
